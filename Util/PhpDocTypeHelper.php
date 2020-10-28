@@ -12,8 +12,11 @@
 namespace Symfony\Component\PropertyInfo\Util;
 
 use phpDocumentor\Reflection\Type as DocType;
+use phpDocumentor\Reflection\Types\AbstractList;
+use phpDocumentor\Reflection\Types\Array_;
 use phpDocumentor\Reflection\Types\Collection;
 use phpDocumentor\Reflection\Types\Compound;
+use phpDocumentor\Reflection\Types\Iterable_;
 use phpDocumentor\Reflection\Types\Null_;
 use phpDocumentor\Reflection\Types\Nullable;
 use Symfony\Component\PropertyInfo\Type;
@@ -89,8 +92,19 @@ final class PhpDocTypeHelper
     {
         $docType = $docType ?? (string) $type;
 
-        if ($type instanceof Collection) {
-            list($phpType, $class) = $this->getPhpTypeAndClass((string) $type->getFqsen());
+        if ($type instanceof AbstractList) {
+            if ($type instanceof Collection) {
+                list($phpType, $class) = $this->getPhpTypeAndClass((string) $type->getFqsen());
+            } elseif ($type instanceof Array_) {
+                $phpType = 'array';
+                $class = null;
+            } elseif ($type instanceof Iterable_) {
+                $phpType = 'iterable';
+                $class = '';
+            } else {
+                return null;
+            }
+
 
             $key = $this->getTypes($type->getKeyType());
             $value = $this->getTypes($type->getValueType());
